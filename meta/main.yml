@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  author: "Tristan Fisher"
+  description: "Ansible role that makes it easier to access GitHub from a headless server"
+  license: BSD 3-Clause
+  min_ansible_version: 1.8
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+  categories:
+    - development
+dependencies: []
