@@ -1,4 +1,5 @@
 github_user: root
 github_user_home_dir: "/root"
+github_user_key_file: "{{github_user_home_dir}}/.ssh/id_rsa"
 github_private_key: |
   'put your private key here'
