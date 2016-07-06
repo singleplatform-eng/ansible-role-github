@@ -2,73 +2,29 @@
   apt:
     pkg: git
     state: present
-  tags:
-    - github
+    update_cache: yes
+    cache_valid_time: 86400
 
-- name: Allow outbound SSH traffic to Github
-  ufw:
-    rule: allow
-    proto: tcp
-    direction: out
-    to_port: 22
-    to_ip: "{{github_cidr_block}}"
-  tags:
-    - github
-
-- name: Make sure the SSH key directory exists for the deploy user
+- name: Make sure ~/.ssh exists
   file:
     state: directory
-    path: "/home/{{ git_user }}/.ssh/"
-    owner: "{{ git_user }}"
-    group: "{{ git_user }}"
+    path: "{{github_user_home_dir}}/.ssh"
+    owner: "{{github_user}}"
+    group: "{{github_user}}"
     mode: 0700
-  tags:
-    - github
 
-- name: Make sure known_hosts file exists, but don't modify it.
-  file:
-    path: "/home/{{ git_user }}/.ssh/known_hosts"
-    owner: "{{ git_user }}"
-    group: "{{ git_user }}"
-    mode: 0644
-    state: touch
-  tags:
-    - github
-
-- name: Make sure that Github is in the deploy user's known_hosts file
+- name: Ensure github.com is a known host
   lineinfile:
-    dest: "/home/{{ git_user }}/.ssh/known_hosts"
-    line: "{{item.value}}"
-    owner: "{{ git_user }}"
-    group: "{{ git_user }}"
     state: present
-  with_items:
-    - { desc: 'github', value: '|1|5PbExp3HgCVCRpRx8SieErRjgUQ=|mUWQIVXQ9RnCxhO/+kdA7+aRwso= ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=='}
-    - { desc: 'github', value: '|1|m0feMfPwDqJkwTdQ6uzD2FZaKCM=|hW/zPy82fNoBmcTY33MtVcStJoY= ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=='}
-  tags:
-    - github
+    create: yes
+    dest: "{{github_user_home_dir}}/.ssh/known_hosts"
+    line: "{{ lookup('pipe', 'ssh-keyscan -t rsa github.com') }}"
+    regexp: "^github\\.com"
 
-# Need to load the encrypted vars file to use it:
-- include_vars: "{{ github_private_key_source }}"
-
-- name: Copy over PRIVATE deploy key file as deploy_user's id_rsa
+- name: Copy private key as github_user's id_rsa
   copy:
-    content: "{{deploy_key}}"
-    dest: "/home/{{ git_user }}/.ssh/id_rsa"
-    owner: "{{ git_user }}"
-    group: "{{ git_user }}"
-    mode: 0600
-  tags:
-    - github
-    - sshkey
-
-- name: Copy over PUBLIC deploy key file for deploy_user's id_rsa.pub
-  copy:
-    src: "{{ github_public_key_source }}"
-    dest: "/home/{{ git_user }}/.ssh/id_rsa.pub"
-    owner: "{{ git_user }}"
-    group: "{{ git_user }}"
-    mode: 0640
-  tags:
-    - github
-    - sshkey
+    content: "{{github_private_key}}"
+    dest: "{{github_user_home_dir}}/.ssh/id_rsa"
+    owner: "{{github_user}}"
+    group: "{{github_user}}"
+    mode: 0400

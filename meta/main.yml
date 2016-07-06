@@ -1,6 +1,7 @@
 ---
+
 galaxy_info:
-  author: "Tristan Fisher"
+  author: "SinglePlatform"
   description: "Ansible role that makes it easier to access GitHub from a headless server"
   license: BSD 3-Clause
   min_ansible_version: 1.8
