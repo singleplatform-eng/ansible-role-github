@@ -17,10 +17,12 @@
   lineinfile:
     state: present
     create: yes
+    owner: "{{github_user}}"
+    group: "{{github_user}}"
+    mode: 0600
     dest: "{{github_user_home_dir}}/.ssh/known_hosts"
     line: "{{ lookup('pipe', 'ssh-keyscan -t rsa github.com') }}"
     regexp: "^github\\.com"
-  become_user: "{{github_user}}"
 
 - name: Copy private key as github_user's id_rsa
   copy:
@@ -28,5 +30,4 @@
     dest: "{{github_user_key_file}}"
     owner: "{{github_user}}"
     group: "{{github_user}}"
-    mode: 0400
-  become_user: "{{github_user}}"
+    mode: 0600
